@@ -217,8 +217,7 @@ class MimeControllerTest < Test::Unit::TestCase
     test_using_defaults
   end
 
-  # Disabled
-  def _test_using_defaults_with_type_list
+  def test_using_defaults_with_type_list
     @request.env["HTTP_ACCEPT"] = "*/*"
     get :using_defaults_with_type_list
     assert_equal 'Hello world!', @response.body
@@ -232,7 +231,8 @@ class MimeControllerTest < Test::Unit::TestCase
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
 
-  def test_fr_using_defaults_with_type_list
+  # Disabled
+  def _test_fr_using_defaults_with_type_list
     Locale.set('fr')
 
     @request.env["HTTP_ACCEPT"] = "*/*"
