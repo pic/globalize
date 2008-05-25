@@ -243,6 +243,30 @@ class ViewTranslationTest < Test::Unit::TestCase
     # phew!
   end
   
+  def test_cache_with_zplural_idx
+    Locale.set("it")
+    tr = Locale.translator
+    tr.cache_reset
+    
+    assert_equal 'un cane', '%d dogs' / 1
+    assert_equal 1, tr.cache_count
+    assert_equal 14, tr.cache_size
+    assert_equal 0, tr.cache_total_hits
+    assert_equal 1, tr.cache_total_queries
+
+    assert_equal '100 cani', '%d dogs' / 100
+    assert_equal 2, tr.cache_count
+    assert_equal 28, tr.cache_size
+    assert_equal 0, tr.cache_total_hits
+    assert_equal 2, tr.cache_total_queries
+
+    assert_equal '1000 cani', '%d dogs' / 1000
+    assert_equal 2, tr.cache_count
+    assert_equal 28, tr.cache_size
+    assert_equal 1, tr.cache_total_hits
+    assert_equal 3, tr.cache_total_queries
+  end
+  
   def test_cache_and_default
     Locale.set("en")
     
@@ -293,6 +317,24 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal 60, tr.cache_size
     assert_equal 12, tr.cache_total_hits
     assert_equal 18, tr.cache_total_queries
+    
+    # back to English
+    Locale.set('en')
+    # a string with %d
+    assert_equal '%d abcde', '%d abcde'.t
+    assert_equal '%d abcde', '%d abcde'.t
+    assert_equal '0 abcde', '%d abcde' / 0
+    assert_equal '0 abcde', '%d abcde' / 0
+    assert_equal '1 abcde', '%d abcde' / 1
+    assert_equal '1 abcde', '%d abcde' / 1
+    assert_equal '8 abcde', '%d abcde' / 8
+    assert_equal '9 abcde', '%d abcde' / 9
+    assert_equal '10 abcde', '%d abcde' / 10
+    
+    assert_equal 9, tr.cache_count
+    assert_equal 108, tr.cache_size
+    assert_equal 18, tr.cache_total_hits
+    assert_equal 27, tr.cache_total_queries    
   end
 
 end

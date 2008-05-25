@@ -57,3 +57,13 @@ poland:
   thousands_sep: "."
   decimal_sep: ','
   currency_decimal_sep: ','
+
+italy:
+  id: 8
+  code: IT
+  english_name: Italy
+  currency_format: '%n €'
+  currency_code: EUR
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','

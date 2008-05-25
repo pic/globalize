@@ -73,3 +73,14 @@ spanish:
   scope: L
   macro_language: false
   pluralization: 'c == 1 ? 1 : 2'
+  
+italian:
+  id: 8
+  iso_639_1: it
+  iso_639_2: ita
+  english_name: Italian
+  native_name: italiano
+  direction: ltr
+  scope: L
+  macro_language: false
+  pluralization: 'c == 1 ? 1 : 2'

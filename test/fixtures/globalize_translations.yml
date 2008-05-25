@@ -411,3 +411,19 @@ view_es_tr_namespace_7:
   pluralization_index: 1
   tr_key: "draw %d times"
   text: "draw once"
+  
+cache_and_pluralization_1:
+  id: 67
+  type: ViewTranslation
+  language_id: 8
+  pluralization_index: 1
+  tr_key: "%d dogs"
+  text: "un cane"
+
+cache_and_pluralization_2:
+  id: 68
+  type: ViewTranslation
+  language_id: 8
+  pluralization_index: 2
+  tr_key: "%d dogs"
+  text: "%d cani"
