@@ -337,4 +337,26 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal 27, tr.cache_total_queries    
   end
 
+  def test_array_arg
+    Locale.set('en')
+    assert_equal 'Nicola has 3 dogs', '%s has %d dogs' / ['Nicola', 3]
+
+    # but  
+    assert_equal 'Nicola has 1 dogs', '%s has %d dogs' / ['Nicola', 1]
+    # and that's not what someone usually wants
+    # so (to check also comment in code)
+    assert_equal 'a dog', '%d dogs' / 1
+    assert_equal 'Nicola has a dog', "%s has %s" / ['Nicola', '%d dogs' / 1]
+    
+    Locale.set('it')
+    assert_equal 'Nicola ha 3 cani', '%s has %d dogs' / ['Nicola', 3]
+  end
+
+  def test_translate_with_named_param # hash arg
+    Locale.set('en')
+    assert_equal '3 colored toucans', '%{number} %{adjective} %{name}' / {'number' => 3, 'adjective' => 'colored', 'name' => 'toucans'}
+    Locale.set('it')
+    assert_equal '3 tucani colorati', '%{number} %{adjective} %{name}' / {'number' => 3, 'adjective' => 'colorati', 'name' => 'tucani'}
+  end
+
 end

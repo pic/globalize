@@ -427,3 +427,36 @@ cache_and_pluralization_2:
   pluralization_index: 2
   tr_key: "%d dogs"
   text: "%d cani"
+  
+array_arg_1:  
+  id: 69
+  type: ViewTranslation
+  language_id: 8
+  pluralization_index: 1
+  tr_key: "%s has %d dogs"
+  text: "%s ha %d cani"
+
+array_arg_2:  
+  id: 70
+  type: ViewTranslation
+  language_id: 8
+  pluralization_index: 1
+  tr_key: "%s has %s"
+  text: "%s ha %s"
+
+array_arg_3:  
+  id: 71
+  type: ViewTranslation
+  language_id: 1
+  pluralization_index: 1
+  tr_key: "%d dogs"
+  text: "a dog"
+
+translate_with_named_param:  
+  id: 72
+  type: ViewTranslation
+  language_id: 8
+  pluralization_index: 1
+  tr_key: "%{number} %{adjective} %{name}"
+  text: "%{number} %{name} %{adjective}"
+  

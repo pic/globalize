@@ -20,6 +20,21 @@ module Globalize # :nodoc:
 
       if num
         return result.sub('%d', num.to_s)
+      # following code inspired by Jürgen Feßlmeier, see:
+      # http://www.nabble.com/Monkey-patch-td16830484s17045.html#a16830484 .
+      # It doesn't work well with pluralization as stated by Sven Fuchs ( 
+      # http://www.nabble.com/Re%3A-subsituting-multiple-strings-numbers-in-translated-strings-p9597407s17045.html )
+      # but one can always refactor his translation keys, example:
+      # "%s has %d dogs" / ['Nicola', 1]
+      # becomes
+      # "%s has %s" / ['Nicola', '%d dogs' / 1] .
+      # If order of string substitution matters then use an Hash
+      elsif arg.kind_of?(Array)
+        # exploit Ruby built in format method
+        return result % arg
+      elsif arg.kind_of?(Hash)
+        arg.each { |_key, value| result.gsub!(/\%\{#{_key}\}/, value.to_s) }
+        return result 
       else
         return arg.nil? ? result : result.sub('%s', arg.to_s)
       end
