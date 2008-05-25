@@ -11,8 +11,9 @@ class ViewPickingTest < Test::Unit::TestCase
     Locale.set("en-US")
     @base_path = File.dirname(__FILE__) + '/views'
   end
-
-  def test_first
+  
+  # template translation isn't supported anymore and these tests are disabled
+  def _test_first
     tc = TestController.new([@base_path])
     assert_match /English/, tc.render("test")
     assert_no_match /Hebrew/, tc.render("test")
@@ -26,7 +27,7 @@ class ViewPickingTest < Test::Unit::TestCase
     assert_match /English/, tc.render_file("#{@base_path}/test.rhtml", false)
   end
 
-  def test_nil
+  def _test_nil
     Locale.set(nil)
     tc = TestController.new([@base_path])
     assert_match /English/, tc.render("test")
