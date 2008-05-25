@@ -143,9 +143,12 @@ module Globalize # :nodoc:
           # set to plural_form if no zero-form exists
           result ||= fetch_view_translation(key, language, plural_idx, namespace) if zero_form
 
+          # cache default in case
+          result ||= real_default
+  
           cache_add(key, language, zplural_idx, result, namespace)
         end
-        result ||= real_default
+        result
       end
 
   end

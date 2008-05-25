@@ -242,5 +242,57 @@ class ViewTranslationTest < Test::Unit::TestCase
 
     # phew!
   end
+  
+  def test_cache_and_default
+    Locale.set("en")
+    
+    tr = Locale.translator
+    tr.cache_reset
+
+    assert_equal 'abcde', 'abcde'.t
+    assert_equal 1, tr.cache_count
+    assert_equal 10, tr.cache_size
+    assert_equal 0, tr.cache_total_hits
+    assert_equal 1, tr.cache_total_queries
+    
+    # now even default is in cache
+    assert_equal 'abcde', 'abcde'.t
+    assert_equal 1, tr.cache_count
+    assert_equal 10, tr.cache_size
+    assert_equal 1, tr.cache_total_hits
+    assert_equal 2, tr.cache_total_queries
+
+    # what does it happen with zplural_idx?
+    assert_equal 'abcde', 'abcde' / 0
+    assert_equal 'abcde', 'abcde' / 0
+    assert_equal 'abcde', 'abcde' / 1
+    assert_equal 'abcde', 'abcde' / 1
+    assert_equal 'abcde', 'abcde' / 8
+    assert_equal 'abcde', 'abcde' / 9
+    assert_equal 'abcde', 'abcde' / 10
+    
+    assert_equal 3, tr.cache_count
+    assert_equal 30, tr.cache_size
+    assert_equal 6, tr.cache_total_hits
+    assert_equal 9, tr.cache_total_queries
+    
+    # what does it happen changing Locale?
+    Locale.set("he")
+    
+    assert_equal 'abcde', 'abcde'.t
+    assert_equal 'abcde', 'abcde'.t
+    assert_equal 'abcde', 'abcde' / 0
+    assert_equal 'abcde', 'abcde' / 0
+    assert_equal 'abcde', 'abcde' / 1
+    assert_equal 'abcde', 'abcde' / 1
+    assert_equal 'abcde', 'abcde' / 8
+    assert_equal 'abcde', 'abcde' / 9
+    assert_equal 'abcde', 'abcde' / 10
+
+    assert_equal 6, tr.cache_count
+    assert_equal 60, tr.cache_size
+    assert_equal 12, tr.cache_total_hits
+    assert_equal 18, tr.cache_total_queries
+  end
 
 end
