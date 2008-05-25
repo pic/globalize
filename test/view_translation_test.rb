@@ -358,5 +358,28 @@ class ViewTranslationTest < Test::Unit::TestCase
     Locale.set('it')
     assert_equal '3 tucani colorati', '%{number} %{adjective} %{name}' / {'number' => 3, 'adjective' => 'colorati', 'name' => 'tucani'}
   end
+  
+  def test_on_full_cache_callback
+    Locale.set('en')
+    tr = Locale.translator
+    tr.cache_reset
+    
+    m = Class.new do
+      def on_full_cache(_tr)
+        @message = "#{_tr.cache_total_queries} queries"
+      end
+      attr_reader :message
+    end 
+    tr.cache_monitor = cache_monitor = m.new
+    
+    tr.max_cache_size = 10 / 1024  # in kb
+    '123'.t
+    assert_nil cache_monitor.message
+    '456'.t
+    assert_equal "2 queries", cache_monitor.message
+    
+    # cleaning
+    tr.cache_monitor = nil
+  end
 
 end

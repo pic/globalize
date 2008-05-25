@@ -7,6 +7,8 @@ module Globalize # :nodoc:
     attr_accessor :max_cache_size
 
     attr_reader :cache_size, :cache_total_hits, :cache_total_queries
+    
+    attr_accessor :cache_monitor
 
     def fetch(key, language, default = nil, arg = nil, namespace = nil) # :nodoc:
 
@@ -81,6 +83,10 @@ module Globalize # :nodoc:
       @cache_total_queries = 0
     end
 
+    def cache_hit_ratio
+      @cache_total_hits / @cache_total_queries
+    end
+
     private
       def fetch_view_translation(key, language, idx, namespace = nil)
         tr = nil
@@ -101,13 +107,17 @@ module Globalize # :nodoc:
 
       def cache_fetch(key, language, idx, namespace = nil)
         @cache_total_queries += 1
-        cache_key = cache_key(key, language, idx, namespace)
-        @cache_total_hits += 1 if @cache.has_key?(cache_key)
-        @cache[cache_key]
+        _cache_key = cache_key(key, language, idx, namespace)
+        @cache_total_hits += 1 if @cache.has_key?(_cache_key)
+        @cache[_cache_key]
       end
 
       def cache_add(key, language, idx, translation, namespace = nil)
-        cache_clear if @cache_size > max_cache_size * 1024
+        if @cache_size > max_cache_size * 1024
+          # useful to monitor cache usage 
+          @cache_monitor.on_full_cache(self) unless @cache_monitor.nil?
+          cache_clear
+        end  
         size = key.size + (translation.nil? ? 0 : translation.size)
         @cache_size += size
         @cache[cache_key(key, language, idx, namespace)] = translation
@@ -121,10 +131,6 @@ module Globalize # :nodoc:
 
       def cache_key(key, language, idx, namespace = nil)
         [ key, language.code, idx, namespace].compact.join(':')
-      end
-
-      def cache_hit_ratio
-        @cache_total_hits / @cache_total_queries
       end
 
       def cache_clear
