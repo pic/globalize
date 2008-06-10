@@ -19,7 +19,6 @@ module Globalize # :nodoc:
       real_default = default || key
 
       result = fetch_from_cache(key, language, real_default, num, namespace)
-
       if num
         return result.sub('%d', num.to_s)
       # following code inspired by Jürgen Feßlmeier, see:
@@ -35,7 +34,7 @@ module Globalize # :nodoc:
         # exploit Ruby built in format method
         return result % arg
       elsif arg.kind_of?(Hash)
-        arg.each { |_key, value| result.gsub!(/\%\{#{_key}\}/, value.to_s) }
+        arg.each { |_key, value| result = result.gsub(/\%\{#{_key}\}/, value.to_s) }
         return result 
       else
         return arg.nil? ? result : result.sub('%s', arg.to_s)

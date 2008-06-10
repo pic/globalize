@@ -336,6 +336,16 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal 18, tr.cache_total_hits
     assert_equal 27, tr.cache_total_queries    
   end
+  
+  def test_cache_and_arguments_substitution
+    Locale.set("en")
+    assert_equal '10 a', '%d a' / 10
+    assert_equal '11 a', '%d a' / 11
+    assert_equal 'the a', '%s a' / 'the'
+    assert_equal 'an a', '%s a' / 'an'
+    assert_equal 'a and b', '%{arg1} and %{arg2}' / {'arg1' => 'a', 'arg2' => 'b'}
+    assert_equal 'c and d', '%{arg1} and %{arg2}' / {'arg1' => 'c', 'arg2' => 'd'}
+  end
 
   def test_array_arg
     Locale.set('en')
