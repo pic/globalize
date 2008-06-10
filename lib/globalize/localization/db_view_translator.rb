@@ -4,7 +4,7 @@ module Globalize # :nodoc:
 
     # The maximum size of the cache in kilobytes.
     # This is just a rough estimate, the cache can grow bigger than this figure.
-    attr_accessor :max_cache_size
+    attr_accessor :max_cache_size, :save_default
 
     attr_reader :cache_size, :cache_total_hits, :cache_total_queries
     
@@ -88,7 +88,7 @@ module Globalize # :nodoc:
     end
 
     private
-      def fetch_view_translation(key, language, idx, namespace = nil)
+      def fetch_view_translation(key, language, idx, namespace = nil, real_default = nil)
         tr = nil
         ViewTranslation.transaction do
           tr = ViewTranslation.pick(key, language, idx, namespace)
@@ -96,9 +96,15 @@ module Globalize # :nodoc:
           # fill in a nil record for missed translations report
           # do not report missing zero-forms -- they're optional
           if !tr && idx != 0
+            if save_default
+            tr = ViewTranslation.create!(:tr_key => key,
+              :language_id => language.id, :pluralization_index => idx,
+              :text => nil, :namespace => namespace, :default_text => real_default)
+            else
             tr = ViewTranslation.create!(:tr_key => key,
               :language_id => language.id, :pluralization_index => idx,
               :text => nil, :namespace => namespace)
+            end
           end
         end
 
@@ -146,6 +152,7 @@ module Globalize # :nodoc:
 
         # default cache size is 8mb
         @max_cache_size = 8192
+        @save_default = false
       end
 
       def fetch_from_cache(key, language, real_default, num, namespace = nil)
@@ -159,10 +166,10 @@ module Globalize # :nodoc:
         if cached
           result = cached
         else
-          result = fetch_view_translation(key, language, zplural_idx, namespace)
+          result = fetch_view_translation(key, language, zplural_idx, namespace, real_default)
 
           # set to plural_form if no zero-form exists
-          result ||= fetch_view_translation(key, language, plural_idx, namespace) if zero_form
+          result ||= fetch_view_translation(key, language, plural_idx, namespace, real_default) if zero_form
 
           # cache default in case
           result ||= real_default

@@ -52,7 +52,7 @@ class GlobalizeGenerator < MigrationGenerator
   end
 
 =begin
-  For each supplied langugage finds all attributes (in all models) marked as
+  For each supplied language finds all attributes (in all models) marked as
   translatable and creates a hash like:
 
     {'ModelClassName' => [['attribute_es','string', nil], ['attribute_fr','string', nil]]}
