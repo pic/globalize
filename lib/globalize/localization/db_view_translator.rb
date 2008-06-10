@@ -83,7 +83,7 @@ module Globalize # :nodoc:
     end
 
     def cache_hit_ratio
-      @cache_total_hits / @cache_total_queries
+      @cache_total_hits.to_f / @cache_total_queries.to_f
     end
 
     private

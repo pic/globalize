@@ -186,6 +186,7 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal 42, tr.cache_size
     assert_equal 2, tr.cache_total_hits
     assert_equal 3, tr.cache_total_queries
+    assert_equal 67, (tr.cache_hit_ratio * 100).ceil
 
     assert_equal "ועכשיו בעברית",
       tr.instance_eval {
