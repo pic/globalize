@@ -99,16 +99,16 @@ view_he_tr_validation_1:
   id: 19
   type: ViewTranslation
   language_id: 2
-  tr_key: "Specs is too long (maximum is %d characters)"
+  tr_key: "Specs is too long (maximum is {{count}} characters)"
   pluralization_index: 1
   text: "המפרט ארוך מדי (המקסימום הוא תו אחד)"
 view_he_tr_validation_2:
   id: 20
   type: ViewTranslation
   language_id: 2
-  tr_key: "Specs is too long (maximum is %d characters)"
+  tr_key: "Specs is too long (maximum is {{count}} characters)"
   pluralization_index: 2
-  text: "המפרט ארוך מדי (המקסימום הוא %d תווים)"
+  text: "המפרט ארוך מדי (המקסימום הוא {{count}} תווים)"
 
 date_he_oct_abbr:
   id: 21
@@ -459,4 +459,27 @@ translate_with_named_param:
   pluralization_index: 1
   tr_key: "%{number} %{adjective} %{name}"
   text: "%{number} %{name} %{adjective}"
+
+view_it_tr_validation:
+  id: 73
+  type: ViewTranslation
+  language_id: 8
+  tr_key: "is too long (maximum is {{count}} characters)"
+  pluralization_index: 2
+  text: "è troppo lungo (il massimo è {{count}} caratteri)"  
   
+view_it_multiple_variable_and_count_1:  
+  id: 74
+  type: ViewTranslation
+  language_id: 8
+  tr_key: "{{name}} has {{count}} dogs"
+  pluralization_index: 1
+  text: "{{name}} ha 1 cane"  
+
+view_it_multiple_variable_and_count_2:  
+  id: 75
+  type: ViewTranslation
+  language_id: 8
+  tr_key: "{{name}} has {{count}} dogs"
+  pluralization_index: 2
+  text: "{{name}} ha {{count}} cani"  

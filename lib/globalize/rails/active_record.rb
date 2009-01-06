@@ -5,30 +5,37 @@ module ActiveRecord # :nodoc:
   # the field names have been substituted.
   class Errors
 
-    # Like the regular #add, but automatically translates the error message.
-    # Takes an extra +num+ argument to support pluralization.
-    def add(attribute, msg = @@default_error_messages[:invalid], num = nil)
-      @errors[attribute.to_s] = [] if @errors[attribute.to_s].nil?
-      @errors[attribute.to_s] << [ msg, num ]
-    end
+    # Returns all the full error messages in an array.
+    #
+    #   class Company < ActiveRecord::Base
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, :in => 5..30
+    #   end
+    #
+    #   company = Company.create(:address => '123 First St.')
+    #   company.errors.full_messages # =>
+    #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
+    def full_messages(options = {})
+      full_messages = []
 
-    # Like the regular add_to_base, but automatically translates the error message.
-    # Takes an extra +num+ argument to support pluralization.
-    def add_to_base(msg, num = nil)
-      add(:base, msg, num)
-    end
-
-    # Like the regular add_on_boundary_breaking, but automatically translates the error message.
-    def add_on_boundary_breaking(attributes, range,
-        too_long_msg = @@default_error_messages[:too_long],
-        too_short_msg = @@default_error_messages[:too_short])
-      for attr in [attributes].flatten
-        value = @base.respond_to?(attr.to_s) ? @base.send(attr.to_s) : @base[attr.to_s]
-        add(attr, too_short_msg, range.begin) if value && value.length < range.begin
-        add(attr, too_long_msg, range.end) if value && value.length > range.end
+      @errors.each_key do |attr|
+        @errors[attr].each do |message|
+          next unless message
+          msg = [ message ].flatten
+          msg_text, msg_opt = msg
+          if attr == "base"
+            full_messages << msg_text / msg_opt
+          else
+            #key = :"activerecord.att.#{@base.class.name.underscore.to_sym}.#{attr}" 
+            attr_name = @base.class.human_attribute_name(attr)
+            full_messages << (attr_name + ' ' + msg_text) / msg_opt
+          end
+        end
       end
-    end
+      return full_messages
+    end 
 
+=begin
     def full_messages # :nodoc:
       full_messages = []
 
@@ -48,7 +55,29 @@ module ActiveRecord # :nodoc:
 
       return full_messages
     end
+=end
 
+    # Returns +nil+, if no errors are associated with the specified +attribute+.
+    # Returns the error message, if one error is associated with the specified +attribute+.
+    # Returns an array of error messages, if more than one error is associated with the specified +attribute+.
+    #
+    #   class Company < ActiveRecord::Base
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, :in => 5..30
+    #   end
+    #
+    #   company = Company.create(:address => '123 First St.')
+    #   company.errors.on(:name)      # => ["is too short (minimum is 5 characters)", "can't be blank"]
+    #   company.errors.on(:email)     # => "can't be blank"
+    #   company.errors.on(:address)   # => nil
+    def on(attribute)
+      errors = @errors[attribute.to_s]
+      return nil if errors.nil?
+      txt_msgs = errors.map {|msg| msg.kind_of?(Array) ? msg.first / msg.last : msg.t }
+      errors.size == 1 ? txt_msgs.first : txt_msgs
+    end
+
+=begin
     # * Returns nil, if no errors are associated with the specified +attribute+.
     # * Returns the error message, if one error is associated with the specified +attribute+.
     # * Returns an array of error messages, if more than one error is associated with the specified +attribute+.
@@ -61,17 +90,64 @@ module ActiveRecord # :nodoc:
         return txt_msgs.length == 1 ? txt_msgs.first : txt_msgs
       end
     end
+=end
+
+    # Translates an error message in it's default scope (<tt>activerecord.errrors.messages</tt>).
+    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there, 
+    # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the 
+    # default message (e.g. <tt>activerecord.errors.messages.MESSAGE</tt>). The translated model name, 
+    # translated attribute name and the value are available for interpolation.
+    #
+    # When using inheritence in your models, it will check all the inherited models too, but only if the model itself
+    # hasn't been found. Say you have <tt>class Admin < User; end</tt> and you wanted the translation for the <tt>:blank</tt>
+    # error +message+ for the <tt>title</tt> +attribute+, it looks for these translations:
+    # 
+    # <ol>
+    # <li><tt>activerecord.errors.models.admin.attributes.title.blank</tt></li>
+    # <li><tt>activerecord.errors.models.admin.blank</tt></li>
+    # <li><tt>activerecord.errors.models.user.attributes.title.blank</tt></li>
+    # <li><tt>activerecord.errors.models.user.blank</tt></li>
+    # <li><tt>activerecord.errors.messages.blank</tt></li>
+    # <li>any default you provided through the +options+ hash (in the activerecord.errors scope)</li>
+    # </ol>
+    def generate_message(attribute, message = :invalid, options = {})
+      [I18n.translate('activerecord.errors.messages')[message], options]
+=begin      
+      message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
+
+      defaults = @base.class.self_and_descendents_from_active_record.map do |klass| 
+        [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
+          :"models.#{klass.name.underscore}.#{message}" ]
+      end
+      
+      defaults << options.delete(:default)
+      defaults = defaults.compact.flatten << :"messages.#{message}"
+
+      key = defaults.shift
+      value = @base.respond_to?(attribute) ? @base.send(attribute) : nil
+
+      options = { :default => defaults,
+        :model => @base.class.human_name,
+        :attribute => @base.class.human_attribute_name(attribute.to_s),
+        :value => value,
+        :scope => [:activerecord, :errors]
+      }.merge(options)
+
+      I18n.translate(key, options)
+=end
+    end
 
   end
 
+=begin
   module Validations # :nodoc: all
     module ClassMethods
       def validates_length_of(*attrs)
         # Merge given options with defaults.
         options = {
-          :too_long     => ActiveRecord::Errors.default_error_messages[:too_long],
-          :too_short    => ActiveRecord::Errors.default_error_messages[:too_short],
-          :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]
+          :too_long     => I18n.translate('activerecord.errors.messages')[:too_long],
+          :too_short    => I18n.translate('activerecord.errors.messages')[:too_short],
+          :wrong_length => I18n.translate('activerecord.errors.messages')[:wrong_length]
         }.merge(DEFAULT_VALIDATION_OPTIONS)
         options.update(attrs.pop.symbolize_keys) if attrs.last.is_a?(Hash)
 
@@ -120,10 +196,9 @@ module ActiveRecord # :nodoc:
       end
     end
   end
+=end
 end
 
 class ActiveRecord::Base # :nodoc:
   include Globalize::DbTranslate
 end
-
-

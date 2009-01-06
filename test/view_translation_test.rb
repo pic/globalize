@@ -369,7 +369,7 @@ class ViewTranslationTest < Test::Unit::TestCase
     Locale.set('it')
     assert_equal '3 tucani colorati', '%{number} %{adjective} %{name}' / {'number' => 3, 'adjective' => 'colorati', 'name' => 'tucani'}
   end
-  
+
   def test_on_full_cache_callback
     Locale.set('en')
     tr = Locale.translator

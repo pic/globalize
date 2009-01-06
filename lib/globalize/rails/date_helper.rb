@@ -1,4 +1,5 @@
 require "date"
+require 'action_view/helpers/tag_helper'
 
 module ActionView
   module Helpers
@@ -11,6 +12,9 @@ module ActionView
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true, the select_month
     #   method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead of "date[month]".
     module DateHelper # :nodoc:
+      include ActionView::Helpers::TagHelper
+      DEFAULT_PREFIX = 'date' unless const_defined?('DEFAULT_PREFIX')
+      
       # Reports the approximate distance in time between two Time or Date objects or integers as seconds.
       # Set <tt>include_seconds</tt> to true if you want more detailed approximations when distance < 1 min, 29 secs
       # Distances are reported based on the following table:
@@ -83,7 +87,7 @@ module ActionView
           else                 'over %d years' / (distance_in_minutes.to_f / 525960.0).round
         end
       end
-            
+
       # Returns a select tag with options for each of the months January through December with the current month selected.
       # The month names are presented as keys (what's shown to the user) and the month numbers (1-12) are used as values
       # (what's submitted to the server). It's also possible to use month numbers for the presentation instead of names --
@@ -146,9 +150,23 @@ module ActionView
           end
           select_html(options[:field_name] || 'month', month_options.join, options, html_options)
         end
-      end      
-
+      end 
+      
+      def select_html(type, html_options, options, select_tag_options = {})
+        name_and_id_from_options(options, type)
+        select_options = {:id => options[:id], :name => options[:name]}
+        select_options.merge!(:disabled => 'disabled') if options[:disabled]
+        select_options.merge!(select_tag_options) unless select_tag_options.empty?
+        select_html = "\n"
+        select_html << content_tag(:option, '', :value => '') + "\n" if options[:include_blank]
+        select_html << html_options.to_s
+        content_tag(:select, select_html, select_options) + "\n"
+      end
+      
+      def name_and_id_from_options(options, type)
+        options[:name] = (options[:prefix] || DEFAULT_PREFIX) + (options[:discard_type] ? '' : "[#{type}]")
+        options[:id] = options[:name].gsub(/([\[\(])|(\]\[)/, '_').gsub(/[\]\)]/, '')
+      end
     end
-
   end
 end

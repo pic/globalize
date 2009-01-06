@@ -11,6 +11,8 @@ class ValidationTest < Test::Unit::TestCase
 
     validates_length_of :name, :minimum => 5
     validates_length_of :specs, :maximum => 10
+
+    validates_presence_of :code
   end
 
   def setup
@@ -25,5 +27,18 @@ class ValidationTest < Test::Unit::TestCase
     prod = Product.find(3)
     assert !prod.valid?
     assert_equal "Name is too short (minimum is 5 characters)", prod.errors.full_messages.first 
+  end
+  
+  def test_on_1
+    Globalize::Locale.set("it")
+    prod = Product.find(2)
+    assert !prod.valid?
+    assert_equal "è troppo lungo (il massimo è 10 caratteri)", prod.errors.on(:specs)
+  end
+  
+  def test_on_2
+    prod = Product.new :specs => 'abcdefg', :name => 'abcdef'
+    assert !prod.valid?
+    assert_equal "can't be blank", prod.errors.on(:code)
   end
 end

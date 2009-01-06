@@ -939,9 +939,9 @@ module Globalize # :nodoc:
       # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
       def method_missing(method_id, *arguments)
         if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
-          finder = determine_finder(match)
+          finder = match.captures.first == 'all_by' ? :find_every : :find_initial
 
-          facets = extract_attribute_names_from_match(match)
+          facets = match.captures.last.split('_and_')
           super unless all_attributes_exists?(facets)
 
           #Overrride facets to use appropriate attribute name for current locale

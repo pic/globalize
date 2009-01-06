@@ -11,15 +11,21 @@ module Globalize # :nodoc:
     attr_accessor :cache_monitor
 
     def fetch(key, language, default = nil, arg = nil, namespace = nil) # :nodoc:
-
+      
       # use argument as pluralization number, if number
       num = arg.kind_of?(Numeric) ? arg : nil
-
+      if num.nil?
+        num = arg.kind_of?(Hash) && arg.has_key?(:count) ? arg[:count] : nil
+        count = true unless num.nil?
+      end
+      
       # if there's no translation, use default or original key
       real_default = default || key
 
       result = fetch_from_cache(key, language, real_default, num, namespace)
+      num = nil if count
       if num
+        #ActiveSupport::Deprecation.warn("Interpolation with %d is not part of Rails i18n API, use instead a {{count}} variable.")
         return result.sub('%d', num.to_s)
       # following code inspired by Jürgen Feßlmeier, see:
       # http://www.nabble.com/Monkey-patch-td16830484s17045.html#a16830484 .
@@ -34,7 +40,8 @@ module Globalize # :nodoc:
         # exploit Ruby built in format method
         return result % arg
       elsif arg.kind_of?(Hash)
-        arg.each { |_key, value| result = result.gsub(/\%\{#{_key}\}/, value.to_s) }
+        # support both %{variable} and {{variable}} 
+        arg.each { |_key, value| result = result.gsub(/\%\{#{_key}\}|\{\{#{_key}\}\}/, value.to_s) }
         return result 
       else
         return arg.nil? ? result : result.sub('%s', arg.to_s)

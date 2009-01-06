@@ -24,7 +24,7 @@ class ViewPickingTest < Test::Unit::TestCase
 
   def test_non_full_path
     tc = TestController.new([@base_path])
-    assert_match /English/, tc.render_file("#{@base_path}/test.rhtml", false)
+    assert_match /English/, tc.render(:file => "#{@base_path}/test.rhtml")
   end
 
   def _test_nil
@@ -40,7 +40,7 @@ class ViewPickingTest < Test::Unit::TestCase
   def test_non_full_path_nil
     Locale.set(nil)
     tc = TestController.new([@base_path])
-    assert_match /English/, tc.render_file("#{@base_path}/test.rhtml", false)
+    assert_match /English/, tc.render(:file => "#{@base_path}/test.rhtml")
   end
 
 end
