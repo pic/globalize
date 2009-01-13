@@ -8,12 +8,12 @@ module Globalize # :nodoc:
     
     def self.convert_to_ror2_2_conventions
       do_conversion = lambda do |a| 
-        ts = Translation.find :all, :conditions => ["#{a} like '%%\%%d%%'"]
+        ts = Translation.find :all, :conditions => ["#{a} like ?", '%%%d%'] # .*%d.*
         ts.each do |t| 
           n_a = t.send(a).sub('%d', '{{count}}')
           t.update_attribute(a, n_a)
         end  
-        ts = Translation.find :all, :conditions => ["#{a} like '%%\%%{%%}%%'"]
+        ts = Translation.find :all, :conditions => ["#{a} like ?", '%%%{%}%'] # .*%\{.*\}.*
         ts.each do |t| 
           n_a = t.send(a).gsub(/%\{(.*?)\}/, '{{\1}}')
           t.update_attribute(a, n_a)
