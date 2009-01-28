@@ -88,85 +88,27 @@ module ActionView
         end
       end
 
-      # Returns a select tag with options for each of the months January through December with the current month selected.
-      # The month names are presented as keys (what's shown to the user) and the month numbers (1-12) are used as values
-      # (what's submitted to the server). It's also possible to use month numbers for the presentation instead of names --
-      # set the <tt>:use_month_numbers</tt> key in +options+ to true for this to happen. If you want both numbers and names,
-      # set the <tt>:add_month_numbers</tt> key in +options+ to true. If you would prefer to show month names as abbreviations,
-      # set the <tt>:use_short_month</tt> key in +options+ to true. If you want to use your own month names, set the
-      # <tt>:use_month_names</tt> key in +options+ to an array of 12 month names. Override the field name using the 
-      # <tt>:field_name</tt> option, 'month' by default.
-      #
-      # ==== Examples
-      #   # Generates a select field for months that defaults to the current month that
-      #   # will use keys like "January", "March".
-      #   select_month(Date.today)
-      #
-      #   # Generates a select field for months that defaults to the current month that
-      #   # is named "start" rather than "month"
-      #   select_month(Date.today, :field_name => 'start')
-      #
-      #   # Generates a select field for months that defaults to the current month that
-      #   # will use keys like "1", "3".       
-      #   select_month(Date.today, :use_month_numbers => true)
-      #
-      #   # Generates a select field for months that defaults to the current month that
-      #   # will use keys like "1 - January", "3 - March".
-      #   select_month(Date.today, :add_month_numbers => true)
-      #
-      #   # Generates a select field for months that defaults to the current month that
-      #   # will use keys like "Jan", "Mar".
-      #   select_month(Date.today, :use_short_month => true)
-      #
-      #   # Generates a select field for months that defaults to the current month that
-      #   # will use keys like "Januar", "Marts."
-      #   select_month(Date.today, :use_month_names => %w(Januar Februar Marts ...))
-      #
-      def select_month(date, options = {}, html_options = {})
-        val = date ? (date.kind_of?(Fixnum) ? date : date.month) : ''
-        if options[:use_hidden]
-          hidden_html(options[:field_name] || 'month', val, options)
-        else
-          month_options = []
-          month_names = options[:use_month_names] || (options[:use_short_month] ? 
+    end  
+      
+    class DateTimeSelector
+      private
+        # Returns translated month names
+        #  => [nil, "January", "February", "March",
+        #           "April", "May", "June", "July",
+        #           "August", "September", "October",
+        #           "November", "December"]
+        #
+        # If :use_short_month option is set
+        #  => [nil, "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        #           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        def translated_month_names
+          month_names = @options[:use_short_month] ? 
             Date::ABBR_MONTHNAMES.map {|m| "#{m} [abbreviated month]".t(m) } : 
             Date::MONTHNAMES.map {|m| "#{m} [month]".t(m) }
-            )
           month_names.unshift(nil) if month_names.size < 13
-          1.upto(12) do |month_number|
-            month_name = if options[:use_month_numbers]
-              month_number
-            elsif options[:add_month_numbers]
-              month_number.to_s + ' - ' + month_names[month_number]
-            else
-              month_names[month_number]
-            end
-
-            month_options << ((val == month_number) ?
-              content_tag(:option, month_name, :value => month_number, :selected => "selected") :
-              content_tag(:option, month_name, :value => month_number)
-            )
-            month_options << "\n"
-          end
-          select_html(options[:field_name] || 'month', month_options.join, options, html_options)
+          month_names
         end
-      end 
       
-      def select_html(type, html_options, options, select_tag_options = {})
-        name_and_id_from_options(options, type)
-        select_options = {:id => options[:id], :name => options[:name]}
-        select_options.merge!(:disabled => 'disabled') if options[:disabled]
-        select_options.merge!(select_tag_options) unless select_tag_options.empty?
-        select_html = "\n"
-        select_html << content_tag(:option, '', :value => '') + "\n" if options[:include_blank]
-        select_html << html_options.to_s
-        content_tag(:select, select_html, select_options) + "\n"
-      end
-      
-      def name_and_id_from_options(options, type)
-        options[:name] = (options[:prefix] || DEFAULT_PREFIX) + (options[:discard_type] ? '' : "[#{type}]")
-        options[:id] = options[:name].gsub(/([\[\(])|(\]\[)/, '_').gsub(/[\]\)]/, '')
-      end
     end
   end
 end
