@@ -33,7 +33,7 @@ ActiveRecord::Schema.define do
     t.column :name_he, :string
   end
 
-  add_index :globalize_manufacturers, :code, :unique
+  add_index :globalize_manufacturers, :code, :unique => true
 
   create_table :globalize_categories, :force => true do |t|
     t.column :code, :string
@@ -42,7 +42,7 @@ ActiveRecord::Schema.define do
     t.column :name_he, :string
   end
 
-  add_index :globalize_categories, :code, :unique
+  add_index :globalize_categories, :code, :unique => true
 
   create_table :globalize_categories_products, :id => false, :force => true do |t|
     t.column :category_id, :integer
@@ -108,5 +108,5 @@ ActiveRecord::Schema.define do
     t.column :name, :string
   end
 
-  add_index :globalize_unlocalized_classes, :code, :unique
+  add_index :globalize_unlocalized_classes, :code, :unique => true
 end
