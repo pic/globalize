@@ -4,13 +4,13 @@ module Globalize # :nodoc:
 
     # The maximum size of the cache in kilobytes.
     # This is just a rough estimate, the cache can grow bigger than this figure.
-    attr_accessor :max_cache_size, :save_default
+    attr_accessor :max_cache_size, :save_default, :save_desc
 
     attr_reader :cache_size, :cache_total_hits, :cache_total_queries
     
     attr_accessor :cache_monitor
 
-    def fetch(key, language, default = nil, arg = nil, namespace = nil) # :nodoc:
+    def fetch(key, language, default = nil, arg = nil, namespace = nil, desc = nil) # :nodoc:
       
       # use argument as pluralization number, if number
       num = arg.kind_of?(Numeric) ? arg : nil
@@ -22,7 +22,7 @@ module Globalize # :nodoc:
       # if there's no translation, use default or original key
       real_default = default || key
 
-      result = fetch_from_cache(key, language, real_default, num, namespace)
+      result = fetch_from_cache(key, language, real_default, num, namespace, desc)
       num = nil if count
       if num
         #ActiveSupport::Deprecation.warn("Interpolation with %d is not part of Rails i18n API, use instead a {{count}} variable.")
@@ -94,7 +94,7 @@ module Globalize # :nodoc:
     end
 
     private
-      def fetch_view_translation(key, language, idx, namespace = nil, real_default = nil)
+      def fetch_view_translation(key, language, idx, namespace = nil, real_default = nil, desc = nil)
         tr = nil
         ViewTranslation.transaction do
           tr = ViewTranslation.pick(key, language, idx, namespace)
@@ -102,15 +102,12 @@ module Globalize # :nodoc:
           # fill in a nil record for missed translations report
           # do not report missing zero-forms -- they're optional
           if !tr && idx != 0
-            if save_default
-            tr = ViewTranslation.create!(:tr_key => key,
+            _attributes = {:tr_key => key,
               :language_id => language.id, :pluralization_index => idx,
-              :text => nil, :namespace => namespace, :default_text => real_default)
-            else
-            tr = ViewTranslation.create!(:tr_key => key,
-              :language_id => language.id, :pluralization_index => idx,
-              :text => nil, :namespace => namespace)
-            end
+              :text => nil, :namespace => namespace }
+            _attributes[:default_text] = real_default if save_default
+            _attributes[:description] = desc if save_desc
+            tr = ViewTranslation.create!(_attributes)
           end
         end
 
@@ -161,7 +158,7 @@ module Globalize # :nodoc:
         @save_default = false
       end
 
-      def fetch_from_cache(key, language, real_default, num, namespace = nil)
+      def fetch_from_cache(key, language, real_default, num, namespace = nil, desc = nil)
         return real_default if language.nil?
 
         zero_form   = num == 0
@@ -172,10 +169,10 @@ module Globalize # :nodoc:
         if cached
           result = cached
         else
-          result = fetch_view_translation(key, language, zplural_idx, namespace, real_default)
+          result = fetch_view_translation(key, language, zplural_idx, namespace, real_default, desc)
 
           # set to plural_form if no zero-form exists
-          result ||= fetch_view_translation(key, language, plural_idx, namespace, real_default) if zero_form
+          result ||= fetch_view_translation(key, language, plural_idx, namespace, real_default, desc) if zero_form
 
           # cache default in case
           result ||= real_default

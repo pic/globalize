@@ -20,7 +20,7 @@ module Globalize # :nodoc:
       #
       # If there is no translation available, +default+ will be returned, or
       # if it's not supplied, the original string will be returned.
-      def translate(default = nil, arg = nil, namespace = nil)
+      def translate(default = nil, arg = nil, namespace = nil, desc = nil)
         Locale.translate(self, default, arg, namespace)
       end
       alias :t :translate
