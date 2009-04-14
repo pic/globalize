@@ -20,6 +20,9 @@ module Globalize # :nodoc:
       end
       
       # if there's no translation, use default or original key
+      if arg.kind_of?(Hash)
+        default ||= arg[:default]
+      end
       real_default = default || key
 
       result = fetch_from_cache(key, language, real_default, num, namespace, desc)

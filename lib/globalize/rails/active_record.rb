@@ -16,23 +16,31 @@ module ActiveRecord # :nodoc:
     #   company.errors.full_messages # =>
     #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
     def full_messages(options = {})
-      full_messages = []
+      _full_messages = []
 
       @errors.each_key do |attr|
         @errors[attr].each do |message|
           next unless message
           msg = [ message ].flatten
           msg_text, msg_opt = msg
+          default = nil
+          if msg_opt.kind_of?(Hash)
+            default = msg_opt[:default]
+          end
+          # in full_messages I'm using the default as translation key,
+          # it's ugly contrived but it's what I need for backward compatibility
+          msg_text = default unless default.nil?
           if attr == "base"
-            full_messages << msg_text / msg_opt
+            _full_messages << msg_text.t(default, msg_opt)
           else
-            #key = :"activerecord.att.#{@base.class.name.underscore.to_sym}.#{attr}" 
+            #key = :"activerecord.att.#{@base.class.name.underscore.to_sym}.#{attr}"
             attr_name = @base.class.human_attribute_name(attr)
-            full_messages << (attr_name + ' ' + msg_text) / msg_opt
+            full_default = default.nil? ? nil : attr_name + ' ' + default
+            _full_messages << (attr_name + ' ' + msg_text).t(full_default, msg_opt)
           end
         end
       end
-      return full_messages
+      return _full_messages
     end 
 
 =begin
